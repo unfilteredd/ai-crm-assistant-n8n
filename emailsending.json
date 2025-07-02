@@ -1,0 +1,236 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "05b4a929-9113-49a3-8166-fc21f616692b",
+      "name": "When chat message received",
+      "webhookId": "f1ac576f-b1da-460e-9da8-19f7029532cd"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User's query: {{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=Role: You are a helpful assistant with the access to CRM and email of the user.\n\nGoal: Fulfill user's queries and tasks. Use respective tools.\n\nTools:\n1. SearchCRM - to find people in the CRM. \n2. UpdateCRM - to update or append CRM data. When you add a new contact, ensure  you've got the email address.\n3. SendEmail -  to send emails. Sign emails as unfiltered."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "28320296-2f2d-4136-81d3-033de03a465a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        220
+      ],
+      "id": "a76b5053-6ebc-454d-a91b-7d51e1cca654",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "dgDULZjuTX0lqF8O",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "A tool to find people in CRM",
+        "documentId": {
+          "__rl": true,
+          "value": "12WDkBM0DCsG3oTtGplmzKYSCoygR6--y5Gtk12ruxiE",
+          "mode": "list",
+          "cachedResultName": "CRM Dummy",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12WDkBM0DCsG3oTtGplmzKYSCoygR6--y5Gtk12ruxiE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12WDkBM0DCsG3oTtGplmzKYSCoygR6--y5Gtk12ruxiE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        300,
+        240
+      ],
+      "id": "f3ecdce7-d871-4892-98f8-b01f9c2b6bfc",
+      "name": "SearchCRM",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jgzRX48LYa0GJY0J",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "A tool to update or append CRM data. When you add a new contact, ensure you've got the email address.",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "12WDkBM0DCsG3oTtGplmzKYSCoygR6--y5Gtk12ruxiE",
+          "mode": "list",
+          "cachedResultName": "CRM Dummy",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12WDkBM0DCsG3oTtGplmzKYSCoygR6--y5Gtk12ruxiE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12WDkBM0DCsG3oTtGplmzKYSCoygR6--y5Gtk12ruxiE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        420,
+        320
+      ],
+      "id": "88694a48-6c7d-47f8-89f4-4ebd09496f00",
+      "name": "UpdateCRM",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "jgzRX48LYa0GJY0J",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "A tool to send emails on user's behalf.",
+        "sendTo": "={{ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        460,
+        220
+      ],
+      "id": "be0a92c2-77f2-4b85-b42c-8fd513d3745f",
+      "name": "SendEmail",
+      "webhookId": "2aad5bd1-96f4-429a-a1b6-b5f95d4d1798",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "i3UlKo8CiR09IhmK",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SearchCRM": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateCRM": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendEmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "57a04068-c02d-4410-968b-82e1af60c88d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fad6a48eb36794f5b7a495bb43cc524d34bf3723c8779f4124ee016b461939ed"
+  },
+  "id": "eTEKR6q4IEOnIdTR",
+  "tags": []
+}
